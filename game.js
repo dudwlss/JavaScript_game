@@ -91,12 +91,12 @@ const enemyTypes = {
   },
   boss: {
     img: sprites.enemy_boss,
-    hp: 8000, 
-    speed: 180, 
+    hp: 8000,
+    speed: 180,
     size: 90,
     credits: 10000,
     damage: 60,
-    isBoss: true, 
+    isBoss: true,
   },
 };
 
@@ -116,8 +116,8 @@ const player = {
   facingRight: true,
   pierceCount: 0,
   hasShotgun: false,
-  firingAnimTimer: 0, 
-  recoilOffset: 0,    
+  firingAnimTimer: 0,
+  recoilOffset: 0,
 };
 
 const gameState = {
@@ -133,16 +133,43 @@ const gameState = {
   timeElapsed: 0,
   safeZoneRadius: 450,
   inDanger: false,
-}
+};
 
 const turretConfigs = [
-    // 1. 개틀링 (기존): 공속 빠름, 데미지 낮음, 사거리 보통
-    { type: 'gatling', color: '#ffa94d', damage: 15, delay: 0.3, range: 500, bulletSpeed: 700, bulletColor: '#ffa94d', width: 4 },
-    // 2. 캐논: 공속 느림, 데미지 강력, 사거리 긺, 탄속 느림
-    { type: 'cannon',  color: '#ff4444', damage: 70, delay: 1.5, range: 650, bulletSpeed: 450, bulletColor: '#ff0000', width: 12 },
-    // 3. 레이저: 공속 보통, 관통됨(구현예정), 탄속 매우 빠름
-    { type: 'laser',   color: '#00ffff', damage: 30, delay: 0.8, range: 800, bulletSpeed: 1500, bulletColor: '#00ffff', width: 3 }
-]
+  // 1. 개틀링 (기존): 공속 빠름, 데미지 낮음, 사거리 보통
+  {
+    type: "gatling",
+    color: "#ffa94d",
+    damage: 15,
+    delay: 0.3,
+    range: 500,
+    bulletSpeed: 700,
+    bulletColor: "#ffa94d",
+    width: 4,
+  },
+  // 2. 캐논: 공속 느림, 데미지 강력, 사거리 긺, 탄속 느림
+  {
+    type: "cannon",
+    color: "#ff4444",
+    damage: 70,
+    delay: 1.5,
+    range: 650,
+    bulletSpeed: 450,
+    bulletColor: "#ff0000",
+    width: 12,
+  },
+  // 3. 레이저: 공속 보통, 관통됨(구현예정), 탄속 매우 빠름
+  {
+    type: "laser",
+    color: "#00ffff",
+    damage: 30,
+    delay: 0.8,
+    range: 800,
+    bulletSpeed: 1500,
+    bulletColor: "#00ffff",
+    width: 3,
+  },
+];
 
 const bullets = [];
 const enemies = [];
@@ -154,7 +181,7 @@ const sounds = {
     "data:audio/wav;base64,UklGRnQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVQAAAAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fA=="
   ),
 };
-sounds.shot.volume = 0.1;
+sounds.shot.volume = 0.5;
 
 // ==========================================
 // 2. 맵 및 벽 생성
@@ -252,61 +279,67 @@ function updateCamera() {
 }
 
 function spawnEnemy() {
-    const distFromCenter = getDistance(player, {x: WORLD_W/2, y: WORLD_H/2});
-    if (distFromCenter < gameState.safeZoneRadius) {
-        gameState.inDanger = false;
-        return;
+  const distFromCenter = getDistance(player, {
+    x: WORLD_W / 2,
+    y: WORLD_H / 2,
+  });
+  if (distFromCenter < gameState.safeZoneRadius) {
+    gameState.inDanger = false;
+    return;
+  }
+  gameState.inDanger = true;
+
+  const angle = Math.random() * Math.PI * 2;
+  const dist = 550 + Math.random() * 200;
+  const x = player.x + Math.cos(angle) * dist;
+  const y = player.y + Math.sin(angle) * dist;
+
+  if (x < 0 || x > WORLD_W || y < 0 || y > WORLD_H) return;
+  if (checkWallCollision(x, y, 20)) return;
+
+  let type = enemyTypes.lv1;
+  const t = gameState.timeElapsed;
+  const r = Math.random();
+
+  // 난이도 스케줄
+  if (t < 20) {
+    type = enemyTypes.lv1;
+  } else if (t < 60) {
+    type = r < 0.6 ? enemyTypes.lv1 : enemyTypes.lv2;
+  } else if (t < 120) {
+    if (r < 0.3) type = enemyTypes.lv1;
+    else if (r < 0.8) type = enemyTypes.lv2;
+    else type = enemyTypes.lv3;
+  } else if (t < 180) {
+    // 3분 -> 2분으로 단축 (Lv4 조기 등장)
+    if (r < 0.3) type = enemyTypes.lv2;
+    else if (r < 0.7) type = enemyTypes.lv3;
+    else type = enemyTypes.lv4;
+  } else {
+    // 3분 이후: 보스 등장 확률 증가
+    const bossExists = enemies.some((e) => e.isBoss);
+    if (!bossExists && r < 0.03) {
+      // 등장 확률 2% -> 3%
+      type = enemyTypes.boss;
+    } else {
+      type = r < 0.5 ? enemyTypes.lv3 : enemyTypes.lv4;
     }
-    gameState.inDanger = true;
+  }
 
-    const angle = Math.random() * Math.PI * 2;
-    const dist = 550 + Math.random() * 200;
-    const x = player.x + Math.cos(angle) * dist;
-    const y = player.y + Math.sin(angle) * dist;
-
-    if (x < 0 || x > WORLD_W || y < 0 || y > WORLD_H) return;
-    if (checkWallCollision(x, y, 20)) return;
-
-    let type = enemyTypes.lv1;
-    const t = gameState.timeElapsed;
-    const r = Math.random();
-
-    // [수정됨] 더 가혹해진 난이도 스케줄
-    if (t < 20) { 
-        type = enemyTypes.lv1; 
-    } else if (t < 60) { 
-        type = r < 0.6 ? enemyTypes.lv1 : enemyTypes.lv2;
-    } else if (t < 120) { 
-        if(r < 0.3) type = enemyTypes.lv1;
-        else if(r < 0.8) type = enemyTypes.lv2;
-        else type = enemyTypes.lv3;
-    } else if (t < 180) { // 3분 -> 2분으로 단축 (Lv4 조기 등장)
-        if(r < 0.3) type = enemyTypes.lv2;
-        else if(r < 0.7) type = enemyTypes.lv3;
-        else type = enemyTypes.lv4; 
-    } else { 
-        // 3분 이후: 보스 등장 확률 증가
-        const bossExists = enemies.some(e => e.isBoss);
-        if (!bossExists && r < 0.03) { // 등장 확률 2% -> 3%
-            type = enemyTypes.boss;
-        } else {
-            type = r < 0.5 ? enemyTypes.lv3 : enemyTypes.lv4;
-        }
-    }
-
- enemies.push({
-        x, y,
-        radius: type.size/2,
-        speed: type.speed,
-        hp: type.hp * (1 + t * 0.02), // 체력 증가폭 2배 상향
-        maxHp: type.hp * (1 + t * 0.02),
-        damage: type.damage,
-        credits: type.credits,
-        img: type.img,
-        size: type.size,
-        isBoss: type.isBoss || false,
-        skillCooldown: 2.0 // 보스 스킬 쿨타임 초기화
-    });
+  enemies.push({
+    x,
+    y,
+    radius: type.size / 2,
+    speed: type.speed,
+    hp: type.hp * (1 + t * 0.02), // 체력 증가폭 2배 상향
+    maxHp: type.hp * (1 + t * 0.02),
+    damage: type.damage,
+    credits: type.credits,
+    img: type.img,
+    size: type.size,
+    isBoss: type.isBoss || false,
+    skillCooldown: 2.0, // 보스 스킬 쿨타임 초기화
+  });
 }
 
 function handleInput(dt) {
@@ -345,8 +378,11 @@ function handleInput(dt) {
 
   // --- 발사 로직 (산탄/일반) ---
   player.fireTimer -= dt;
-if (gameState.mouse.down && player.fireTimer <= 0) {
-  const angle = Math.atan2(gameState.mouse.worldY - player.y, gameState.mouse.worldX - player.x);
+  if (gameState.mouse.down && player.fireTimer <= 0) {
+    const angle = Math.atan2(
+      gameState.mouse.worldY - player.y,
+      gameState.mouse.worldX - player.x
+    );
 
     // 기본 총알 발사 함수
     const fire = (offsetAngle) => {
@@ -374,15 +410,15 @@ if (gameState.mouse.down && player.fireTimer <= 0) {
     }
 
     // ★ [추가됨] 발사 효과 발동 (소리 재생 바로 밑에 추가하세요)
-  const s = sounds.shot.cloneNode();
-  s.volume = 0.1;
-  s.play().catch(()=>{});
+    const s = sounds.shot.cloneNode();
+    s.volume = 0.1;
+    s.play().catch(() => {});
 
-  // 애니메이션 트리거
-  player.firingAnimTimer = 0.06; // 0.06초 동안 불꽃 표시
-  player.recoilOffset = 6;       // 6픽셀만큼 뒤로 밀림
+    // 애니메이션 트리거
+    player.firingAnimTimer = 0.06; // 0.06초 동안 불꽃 표시
+    player.recoilOffset = 6; // 6픽셀만큼 뒤로 밀림
 
-  player.fireTimer = player.fireDelay;
+    player.fireTimer = player.fireDelay;
   }
 }
 
@@ -394,7 +430,10 @@ function updateEntities(dt) {
     b.y += b.vy * dt;
     b.life -= dt;
     if (checkWallCollision(b.x, b.y, b.radius)) b.life = 0;
-    if (b.life <= 0) { bullets.splice(i, 1); continue; }
+    if (b.life <= 0) {
+      bullets.splice(i, 1);
+      continue;
+    }
   }
 
   // 2. 적 업데이트
@@ -406,66 +445,68 @@ function updateEntities(dt) {
     const moveX = Math.cos(angle) * e.speed * dt;
     const moveY = Math.sin(angle) * e.speed * dt;
 
-    if(!checkWallCollision(e.x + moveX, e.y, e.radius)) e.x += moveX;
-    if(!checkWallCollision(e.x, e.y + moveY, e.radius)) e.y += moveY;
+    if (!checkWallCollision(e.x + moveX, e.y, e.radius)) e.x += moveX;
+    if (!checkWallCollision(e.x, e.y + moveY, e.radius)) e.y += moveY;
 
-   // ★ [수정됨] 보스 스킬 (데미지 대폭 감소)
+    // ★ [수정됨] 보스 스킬 (데미지 대폭 감소)
     if (e.isBoss) {
-        e.skillCooldown -= dt;
-        if (e.skillCooldown <= 0) {
-            const baseAngle = Math.atan2(player.y - e.y, player.x - e.x);
-            const offsets = [-0.3, 0, 0.3];
+      e.skillCooldown -= dt;
+      if (e.skillCooldown <= 0) {
+        const baseAngle = Math.atan2(player.y - e.y, player.x - e.x);
+        const offsets = [-0.3, 0, 0.3];
 
-            offsets.forEach(offset => {
-                bullets.push({
-                    x: e.x, y: e.y,
-                    vx: Math.cos(baseAngle + offset) * 550,
-                    vy: Math.sin(baseAngle + offset) * 550,
-                    radius: 12, 
-                    damage: 15, // ★ 기존 40 -> 15 (이제 한방에 안 죽음!)
-                    life: 4, 
-                    color: '#00ff00', 
-                    pierceLeft: 0, 
-                    hitList: [],
-                    isHostile: true 
-                });
-            });
-            e.skillCooldown = 1.5;
-        }
+        offsets.forEach((offset) => {
+          bullets.push({
+            x: e.x,
+            y: e.y,
+            vx: Math.cos(baseAngle + offset) * 550,
+            vy: Math.sin(baseAngle + offset) * 550,
+            radius: 12,
+            damage: 15, // ★ 기존 40 -> 15 (이제 한방에 안 죽음!)
+            life: 4,
+            color: "#00ff00",
+            pierceLeft: 0,
+            hitList: [],
+            isHostile: true,
+          });
+        });
+        e.skillCooldown = 1.5;
+      }
     }
 
     // 충돌 처리 (플레이어 피격 포함)
-    bullets.forEach(b => {
-        // 적의 총알(보스 스킬) -> 플레이어 피격
-        if (b.isHostile) {
-            if (getDistance(player, b) < player.radius + b.radius) {
-                player.hp -= b.damage;
-                b.life = 0;
-            }
-            return; 
+    bullets.forEach((b) => {
+      // 적의 총알(보스 스킬) -> 플레이어 피격
+      if (b.isHostile) {
+        if (getDistance(player, b) < player.radius + b.radius) {
+          player.hp -= b.damage;
+          b.life = 0;
         }
+        return;
+      }
 
-        // 터렛 총알
-        if (b.color === '#ffa94d') {
-            if (getDistance(e, b) < e.radius + b.radius) {
-                e.hp -= b.damage; b.life = 0;
-            }
-            return;
-        }
-
-        // 플레이어 총알
+      // 터렛 총알
+      if (b.color === "#ffa94d") {
         if (getDistance(e, b) < e.radius + b.radius) {
-            if (b.hitList.includes(e.id)) return;
-            e.hp -= b.damage;
-            b.hitList.push(e.id);
-            if (b.pierceLeft > 0) b.pierceLeft--;
-            else b.life = 0;
+          e.hp -= b.damage;
+          b.life = 0;
         }
+        return;
+      }
+
+      // 플레이어 총알
+      if (getDistance(e, b) < e.radius + b.radius) {
+        if (b.hitList.includes(e.id)) return;
+        e.hp -= b.damage;
+        b.hitList.push(e.id);
+        if (b.pierceLeft > 0) b.pierceLeft--;
+        else b.life = 0;
+      }
     });
 
     // 몸통 박치기 데미지
     if (getDistance(e, player) < e.radius + player.radius) {
-        player.hp -= e.damage * dt;
+      player.hp -= e.damage * dt;
     }
 
     // 사망 처리
@@ -475,40 +516,45 @@ function updateEntities(dt) {
       enemies.splice(i, 1);
 
       // 난이도 가속 (더 빠르게 빨라짐)
-      const timeFactor = gameState.timeElapsed * 0.003; 
-      const killFactor = gameState.kills * 0.002;      
+      const timeFactor = gameState.timeElapsed * 0.003;
+      const killFactor = gameState.kills * 0.002;
       gameState.spawnDelay = Math.max(0.1, 0.8 - timeFactor - killFactor);
     }
   }
-  
- // ★ [수정됨] 포탑 로직 (종류별 발사)
-  turrets.forEach(t => {
-      t.cooldown -= dt;
-      if(t.cooldown <= 0 && enemies.length > 0) {
-          let closest = null, minDist = t.range; // 포탑별 사거리 적용
-          
-          enemies.forEach(e => {
-              const d = getDistance(t, e);
-              if(d < minDist) { minDist = d; closest = e; }
-          });
-          
-          if(closest) {
-              const angle = Math.atan2(closest.y - t.y, closest.x - t.x);
-              bullets.push({
-                  x: t.x, y: t.y,
-                  vx: Math.cos(angle) * t.bulletSpeed, 
-                  vy: Math.sin(angle) * t.bulletSpeed,
-                  radius: t.width, // 총알 크기(두께)
-                  damage: t.damage, 
-                  life: 1.5, 
-                  color: t.bulletColor, // 포탑별 색상
-                  pierceLeft: (t.type === 'laser' ? 2 : 0), // 레이저는 2명 관통
-                  hitList: [], 
-                  isHostile: false
-              });
-              t.cooldown = t.delay;
-          }
+
+  // ★ [수정됨] 포탑 로직 (종류별 발사)
+  turrets.forEach((t) => {
+    t.cooldown -= dt;
+    if (t.cooldown <= 0 && enemies.length > 0) {
+      let closest = null,
+        minDist = t.range; // 포탑별 사거리 적용
+
+      enemies.forEach((e) => {
+        const d = getDistance(t, e);
+        if (d < minDist) {
+          minDist = d;
+          closest = e;
+        }
+      });
+
+      if (closest) {
+        const angle = Math.atan2(closest.y - t.y, closest.x - t.x);
+        bullets.push({
+          x: t.x,
+          y: t.y,
+          vx: Math.cos(angle) * t.bulletSpeed,
+          vy: Math.sin(angle) * t.bulletSpeed,
+          radius: t.width, // 총알 크기(두께)
+          damage: t.damage,
+          life: 1.5,
+          color: t.bulletColor, // 포탑별 색상
+          pierceLeft: t.type === "laser" ? 2 : 0, // 레이저는 2명 관통
+          hitList: [],
+          isHostile: false,
+        });
+        t.cooldown = t.delay;
       }
+    }
   });
 
   if (gameState.stim.active) {
@@ -527,18 +573,18 @@ function updateEntities(dt) {
 }
 
 function spawnTurretItem() {
-    purchase(200, () => {
-        // 3가지 중 랜덤 선택
-        const randIndex = Math.floor(Math.random() * turretConfigs.length);
-        const config = turretConfigs[randIndex];
-        
-        turrets.push({
-            x: player.x, 
-            y: player.y, 
-            cooldown: 0,
-            ...config // 선택된 포탑의 설정값 복사
-        });
+  purchase(200, () => {
+    // 3가지 중 랜덤 선택
+    const randIndex = Math.floor(Math.random() * turretConfigs.length);
+    const config = turretConfigs[randIndex];
+
+    turrets.push({
+      x: player.x,
+      y: player.y,
+      cooldown: 0,
+      ...config, // 선택된 포탑의 설정값 복사
     });
+  });
 }
 
 // ==========================================
@@ -582,37 +628,43 @@ function drawGame() {
   ctx.restore();
 
   // 4. 포탑
-  turrets.forEach(t => {
-      ctx.save();
-      ctx.translate(t.x - camera.x, t.y - camera.y);
-      
-      // 그림자
-      ctx.fillStyle = 'rgba(0,0,0,0.5)';
-      ctx.beginPath(); ctx.arc(2, 2, 12, 0, Math.PI*2); ctx.fill();
+  turrets.forEach((t) => {
+    ctx.save();
+    ctx.translate(t.x - camera.x, t.y - camera.y);
 
-      // 포탑 베이스 (종류별 색상)
-      ctx.fillStyle = t.color;
-      
-      if (t.type === 'cannon') {
-          // 캐논
-          ctx.fillRect(-12, -12, 24, 24);
-          ctx.fillStyle = '#darkred';
-          ctx.fillRect(-6, -6, 12, 12);
-      } else if (t.type === 'laser') {
-          // 레이저
-          ctx.beginPath();
-          ctx.moveTo(0, -15);
-          ctx.lineTo(12, 10);
-          ctx.lineTo(-12, 10);
-          ctx.fill();
-      } else {
-          // 개틀링
-          ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI*2); ctx.fill();
-          ctx.fillStyle = '#fff';
-          ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI*2); ctx.fill();
-      }
-      
-      ctx.restore();
+    // 그림자
+    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    ctx.beginPath();
+    ctx.arc(2, 2, 12, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 포탑 베이스 (종류별 색상)
+    ctx.fillStyle = t.color;
+
+    if (t.type === "cannon") {
+      // 캐논
+      ctx.fillRect(-12, -12, 24, 24);
+      ctx.fillStyle = "#darkred";
+      ctx.fillRect(-6, -6, 12, 12);
+    } else if (t.type === "laser") {
+      // 레이저
+      ctx.beginPath();
+      ctx.moveTo(0, -15);
+      ctx.lineTo(12, 10);
+      ctx.lineTo(-12, 10);
+      ctx.fill();
+    } else {
+      // 개틀링
+      ctx.beginPath();
+      ctx.arc(0, 0, 12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.beginPath();
+      ctx.arc(0, 0, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
   });
 
   // 5. 적 그리기
@@ -621,7 +673,7 @@ function drawGame() {
   enemies.forEach((e) => {
     const sx = e.x - camera.x,
       sy = e.y - camera.y;
-    
+
     // 화면 밖 최적화
     if (
       !e.isBoss &&
@@ -657,69 +709,89 @@ function drawGame() {
   // 6. 플레이어
   ctx.save();
   ctx.translate(player.x - camera.x, player.y - camera.y);
-  
+
   if (player.recoilOffset > 0.1) {
-      const angle = Math.atan2(gameState.mouse.worldY - player.y, gameState.mouse.worldX - player.x);
-      ctx.translate(-Math.cos(angle) * player.recoilOffset, -Math.sin(angle) * player.recoilOffset);
+    const angle = Math.atan2(
+      gameState.mouse.worldY - player.y,
+      gameState.mouse.worldX - player.x
+    );
+    ctx.translate(
+      -Math.cos(angle) * player.recoilOffset,
+      -Math.sin(angle) * player.recoilOffset
+    );
   }
 
   if (!player.facingRight) ctx.scale(-1, 1);
 
   if (sprites.marine.complete && sprites.marine.naturalWidth !== 0) {
-      const size = 70;
-      ctx.drawImage(sprites.marine, -size/2, -size/2, size, size);
-      
-      // 총구 화염
-      if (player.firingAnimTimer > 0) {
-          const flashX = 35; 
-          const flashY = 8;
-          const size = 20 + Math.random() * 10;
-          const color = Math.random() > 0.5 ? '#ffff00' : '#ffaa00';
-          ctx.fillStyle = color;
-          ctx.beginPath();
-          ctx.ellipse(flashX, flashY, size/1.5, size, Math.PI/2, 0, Math.PI*2);
-          ctx.fill();
-          ctx.shadowColor = 'orange';
-          ctx.shadowBlur = 20;
-          ctx.fill();
-          ctx.shadowBlur = 0; 
-      }
+    const size = 70;
+    ctx.drawImage(sprites.marine, -size / 2, -size / 2, size, size);
+
+    // 총구 화염
+    if (player.firingAnimTimer > 0) {
+      const flashX = 35;
+      const flashY = 8;
+      const size = 20 + Math.random() * 10;
+      const color = Math.random() > 0.5 ? "#ffff00" : "#ffaa00";
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.ellipse(
+        flashX,
+        flashY,
+        size / 1.5,
+        size,
+        Math.PI / 2,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+      ctx.shadowColor = "orange";
+      ctx.shadowBlur = 20;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
   } else {
-      ctx.fillStyle = '#00aaff'; ctx.beginPath(); ctx.arc(0, 0, player.radius, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = "#00aaff";
+    ctx.beginPath();
+    ctx.arc(0, 0, player.radius, 0, Math.PI * 2);
+    ctx.fill();
   }
   ctx.restore();
 
   // 7. 총알
-  bullets.forEach(b => {
+  bullets.forEach((b) => {
     const sx = b.x - camera.x;
     const sy = b.y - camera.y;
-    if (sx < -50 || sx > CANVAS_W + 50 || sy < -50 || sy > CANVAS_H + 50) return;
+    if (sx < -50 || sx > CANVAS_W + 50 || sy < -50 || sy > CANVAS_H + 50)
+      return;
 
     ctx.save();
     ctx.translate(sx, sy);
     const angle = Math.atan2(b.vy, b.vx);
     ctx.rotate(angle);
 
-    if (b.color === '#5ce4ff' || b.color === '#ffa94d') { 
-        ctx.shadowColor = b.color;
-        ctx.shadowBlur = 10;
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(-15, -2, 30, 4); 
-    } else if (b.color === '#ff0000') {
-        ctx.shadowColor = 'red';
-        ctx.shadowBlur = 15;
-        ctx.fillStyle = '#ff8888';
-        ctx.fillRect(-10, -6, 20, 12); 
-    } else if (b.color === '#00ffff') {
-        ctx.shadowColor = 'cyan';
-        ctx.shadowBlur = 20;
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(-30, -1, 60, 2); 
-    } else if (b.color === '#00ff00') {
-        ctx.shadowColor = '#00ff00';
-        ctx.shadowBlur = 15;
-        ctx.fillStyle = '#ccffcc';
-        ctx.beginPath(); ctx.arc(0, 0, b.radius, 0, Math.PI * 2); ctx.fill();
+    if (b.color === "#5ce4ff" || b.color === "#ffa94d") {
+      ctx.shadowColor = b.color;
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(-15, -2, 30, 4);
+    } else if (b.color === "#ff0000") {
+      ctx.shadowColor = "red";
+      ctx.shadowBlur = 15;
+      ctx.fillStyle = "#ff8888";
+      ctx.fillRect(-10, -6, 20, 12);
+    } else if (b.color === "#00ffff") {
+      ctx.shadowColor = "cyan";
+      ctx.shadowBlur = 20;
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(-30, -1, 60, 2);
+    } else if (b.color === "#00ff00") {
+      ctx.shadowColor = "#00ff00";
+      ctx.shadowBlur = 15;
+      ctx.fillStyle = "#ccffcc";
+      ctx.beginPath();
+      ctx.arc(0, 0, b.radius, 0, Math.PI * 2);
+      ctx.fill();
     }
     ctx.shadowBlur = 0;
     ctx.restore();
@@ -773,7 +845,7 @@ function drawGame() {
     );
     ctx.textAlign = "start";
   }
-} 
+}
 
 function drawMinimap() {
   const mapSize = 150,
