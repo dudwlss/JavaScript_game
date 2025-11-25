@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>최후의 마린 - Infinite Defense</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <div class="layout">
+      <header class="hud">
+        <div>
+          <p class="eyebrow">TERRAN LAST STAND</p>
+          <h1>마린 키우기</h1>
+          <p>마우스로 조준, 클릭으로 사격, WASD 이동, Space 스팀팩</p>
+        </div>
+        <div class="stats">
+          <div>
+            <span>체력</span>
+            <strong id="hpDisplay">100 / 100</strong>
+          </div>
+          <div>
+            <span>크레딧</span>
+            <strong id="creditDisplay">0</strong>
+          </div>
+          <div>
+            <span>저글링 처치</span>
+            <strong id="killDisplay">0</strong>
+          </div>
+          <div>
+            <span>스팀팩</span>
+            <strong id="stimStatus">대기</strong>
+          </div>
+        </div>
+      </header>
+
+      <main class="content">
+        <canvas id="gameCanvas" width="960" height="600"></canvas>
+
+        <aside class="panel">
+          <h2>업그레이드</h2>
+          <div class="controls">
+            <button id="btn1">[1] 공격력 +3 (150C)</button>
+            <button id="btn2">[2] 공속 +15% (200C)</button>
+            <button id="btn3">[3] 체력 회복 (80C)</button>
+            <button id="btn4">[4] 자동 포탑 (300C)</button>
+            <button id="btn5" style="color: #ffd700">
+              [5] 전투 방패 (MaxHP) (250C)
+            </button>
+            <button id="btn6" style="color: #ffd700">
+              [6] 이속 증가 (Speed) (180C)
+            </button>
+            <button id="btn7" style="color: #ff5555">
+              [7] 산탄 사격 (Shotgun) (800C)
+            </button>
+            <button id="btn8" style="color: #ff5555">
+              [8] 관통 탄환 (Pierce) (600C)
+            </button>
+          </div>
+          <div class="tips">
+            <p>• 저글링 처치 시 10 크레딧 획득</p>
+            <p>• 스팀팩: 체력 15 소모, 5초간 발사 속도 x3</p>
+            <p>• 포탑은 자동으로 근처 적을 사격</p>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <script type="module" src="game.js"></script>
+  </body>
+</html>
