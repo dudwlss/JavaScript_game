@@ -241,8 +241,22 @@ function upgradeFirerate() {
 function buyHeal() {
   purchase(80, () => (player.hp = Math.min(player.hp + 50, player.maxHp)));
 }
+
+// ★ [수정됨] 포탑 구매 함수 (이제 랜덤 포탑이 정상적으로 나옵니다)
 function buyTurret() {
-  purchase(300, () => turrets.push({ x: player.x, y: player.y, cooldown: 0 }));
+  purchase(300, () => {
+    // 가격 300 (버튼과 동일)
+    // 3가지 중 랜덤 선택
+    const randIndex = Math.floor(Math.random() * turretConfigs.length);
+    const config = turretConfigs[randIndex];
+
+    turrets.push({
+      x: player.x,
+      y: player.y,
+      cooldown: 0,
+      ...config, // 설정값(데미지, 사거리 등) 적용
+    });
+  });
 }
 
 // 신규 업그레이드
@@ -256,7 +270,7 @@ function upgradeSpeed() {
   purchase(180, () => (player.speed += 20));
 }
 function upgradeShotgun() {
-  if (player.hasShotgun) return; // 중복 구매 불가 (또는 레벨업으로 변경 가능)
+  if (player.hasShotgun) return;
   purchase(800, () => {
     player.hasShotgun = true;
     btns[6].textContent = "[7] 산탄 사격 (완료)";
@@ -367,7 +381,7 @@ function handleInput(dt) {
   player.y = clamp(player.y, player.radius, WORLD_H - player.radius);
   player.facingRight = gameState.mouse.worldX > player.x;
 
-  if (gameState.keys.Space) {
+  if (gameState.keys.KeyQ) {
     if (!gameState.stim.active && player.hp > 20) {
       player.hp -= 15;
       gameState.stim.active = true;
@@ -570,21 +584,6 @@ function updateEntities(dt) {
     spawnEnemy();
     gameState.spawnTimer = gameState.spawnDelay;
   }
-}
-
-function spawnTurretItem() {
-  purchase(200, () => {
-    // 3가지 중 랜덤 선택
-    const randIndex = Math.floor(Math.random() * turretConfigs.length);
-    const config = turretConfigs[randIndex];
-
-    turrets.push({
-      x: player.x,
-      y: player.y,
-      cooldown: 0,
-      ...config, // 선택된 포탑의 설정값 복사
-    });
-  });
 }
 
 // ==========================================
